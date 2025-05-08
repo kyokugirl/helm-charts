@@ -1,0 +1,21 @@
+fullName: file-mirror
+replicaCount: 2
+
+nginx:
+  tag: stable-alpine
+  conf:
+    port: 80
+    serverName: "localhost"
+
+rsync:
+  tag: "alpine"
+  source: ""
+  cronJob:
+    schedule: "0 */2 * * *"
+    startingDeadlineSeconds: 60
+
+volume:
+  hostPath: /tmp
+
+gateway:
+  pathPrefix: /
