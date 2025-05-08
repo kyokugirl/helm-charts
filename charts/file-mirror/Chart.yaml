@@ -1,7 +1,7 @@
 apiVersion: v2
 name: file-mirror
 description: Helm chart for file mirroring using rsync
-version: 0.1.0
+version: 0.1.1
 maintainers:
   - name: kyokugirl
     email: me@kyoku.dev
