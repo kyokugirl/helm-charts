@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.fullName }}-configmap
+data:
+  nginx.conf: |-
+{{ tpl (.Files.Get "configs/nginx.conf") . | indent 4 }}

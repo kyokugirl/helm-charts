@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.fullName }}-deployment
+  labels:
+    app: {{ .Values.fullName }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.fullName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.fullName }}
+    spec:
+      initContainers:
+        - name: setup-permissions
+          image: busybox:latest
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "Setting permissions on /var/www/mirror..."
+              chmod -R u+rwX,g+rX,o+rX /var/www/mirror # Owner RWX, Group RX, Other RX
+              echo "Permissions set."
+          volumeMounts:
+            - name: mirror-volume
+              mountPath: /var/www/mirror
+      containers:
+        - name: nginx
+          image: "nginx:{{ .Values.nginx.tag }}"
+          ports:
+            - containerPort: {{ .Values.nginx.conf.port }}
+          volumeMounts:
+            - name: mirror-volume
+              mountPath: /var/www/mirror
+            - name: config-volume
+              mountPath: /etc/nginx/nginx.conf
+              readOnly: true
+              subPath: nginx.conf
+      volumes:
+        - name: mirror-volume
+          hostPath:
+            path: {{ .Values.volume.hostPath }}
+            type: DirectoryOrCreate
+        - name: config-volume
+          configMap:
+            name: {{ .Values.fullName }}-configmap
+            items:
+              - key: nginx.conf
+                path: nginx.conf
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

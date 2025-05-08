@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.fullName }}-cronjob
+  labels:
+    app: {{ .Values.fullName }}-cronjob
+spec:
+  schedule: {{ .Values.rsync.cronJob.schedule }}
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: {{ .Values.rsync.cronJob.startingDeadlineSeconds }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: {{ .Values.fullName }}-cronjob
+        spec:
+          nodeSelector:
+            mirror: ""
+          containers:
+            - name: rsync
+              image: "instrumentisto/rsync-ssh:{{ .Values.rsync.tag }}"
+              command: ["rsync"]
+              args:
+                - "-avz" # Archive, verbose, compress
+                - "--delete" # Delete files not in source
+                {{- range .Values.rsync.excludes }}
+                - "--exclude"
+                - "{{ . }}"
+                {{- end }}
+                - "{{ .Values.rsync.source }}"
+                - "/var/www/mirror"
+              volumeMounts:
+                - name: mirror-volume
+                  mountPath: /var/www/mirror
+          volumes:
+            - name: mirror-volume
+              hostPath:
+                type: DirectoryOrCreate
+                path: {{ .Values.volume.hostPath }}
+          restartPolicy: OnFailure
