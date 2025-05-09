@@ -1,5 +1,6 @@
 fullName: file-mirror
 replicaCount: 2
+nodeSelector: {}
 
 nginx:
   tag: stable-alpine
@@ -10,6 +11,7 @@ nginx:
 rsync:
   tag: "alpine"
   source: ""
+  excludes: []
   cronJob:
     schedule: "0 */2 * * *"
     startingDeadlineSeconds: 60
@@ -19,3 +21,5 @@ volume:
 
 gateway:
   pathPrefix: /
+  parentRefs: []
+  additionalRules: []
